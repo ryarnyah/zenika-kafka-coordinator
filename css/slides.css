@@ -1,0 +1,691 @@
+@import url("global.css");
+
+/*********************************************
+ * GLOBAL STYLES
+ *********************************************/
+
+body {
+  background: white;
+  --grey: #aaaaaa;
+  --default-border-size: 1px;
+  --default-border: var(--default-border-size) solid var(--zenika-red);
+  --table-primary-borders: var(--default-border);
+  --table-secondary-borders: var(--default-border-size) solid var(--grey);
+  --content-block-vertical-margin: 15px;
+  --footer-vertical-margin: 15px;
+  --main-content-horizontal-padding: 85px;
+}
+body:lang(fr) {
+  --question-mark: "\00a0?";
+  --exclamation-mark: "\00a0!";
+}
+body:lang(en) {
+  --question-mark: "?";
+  --exclamation-mark: "!";
+}
+
+.reveal {
+  font-family: var(--content-font-family);
+  font-size: 23px;
+  font-weight: normal;
+  color: #333333;
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal .slides section,
+.reveal .slides section section {
+  box-shadow: 0 0 5px 1px #cccccc;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--main-content-horizontal-padding);
+}
+
+.reveal .slides section section {
+  margin-left: calc(-1 * var(--main-content-horizontal-padding));
+}
+
+.reveal.overview .slides section {
+  height: 650px;
+}
+
+.reveal .slide-background {
+  background-size: contain;
+}
+
+::selection {
+  color: white;
+  background: #333333;
+  text-shadow: none;
+}
+
+.reveal .slides table th,
+.reveal .slides table td {
+  padding: 0px 10px;
+}
+
+.reveal .slides table {
+  margin: var(--content-block-vertical-margin) 0;
+  border-left: var(--table-primary-borders);
+  border-collapse: collapse;
+  font-family: var(--table-font-family);
+}
+
+.reveal .slides table th {
+  font-weight: bold;
+}
+
+.reveal .slides table tr td {
+  border: var(--table-secondary-borders);
+}
+
+.reveal .slides table tr th {
+  border: var(--table-secondary-borders);
+  border-bottom: var(--table-primary-borders);
+}
+
+.reveal .slides table.no-border,
+.reveal .slides table.no-border tr td,
+.reveal .slides table.no-border tr th {
+  border: none;
+}
+
+/*********************************************
+ * HEADERS
+ *********************************************/
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  font-family: var(--header-font-family);
+  text-transform: uppercase;
+  hyphens: none;
+  -ms-hyphens: none;
+  -webkit-hyphens: none;
+}
+
+.reveal h1 {
+  margin-top: 5%;
+  width: 600px;
+  float: right;
+  text-align: right;
+  font-size: 40pt;
+  line-height: 130%;
+}
+
+.reveal h1::before {
+  background-image: var(--zenika-logo-monogram);
+  background-size: cover;
+  width: 180px;
+  height: 180px;
+  content: "";
+  margin: 1em;
+}
+
+.reveal h2,
+.reveal h3 {
+  margin-top: 1.5em;
+  margin-bottom: 1em;
+  text-align: left;
+  font-size: 35pt;
+}
+
+.reveal h2.question::after {
+  content: var(--question-mark);
+}
+.reveal h2.exclamation::after {
+  content: var(--exclamation-mark);
+}
+.reveal h2.suspension::after {
+  content: "…";
+}
+
+.reveal h2 small,
+.reveal h3 small {
+  vertical-align: bottom;
+}
+
+/*********************************************
+ * CONTENT
+ *********************************************/
+
+.reveal em {
+  color: var(--zenika-red);
+  font-style: normal;
+}
+
+.reveal strong {
+  color: var(--zenika-red);
+  font-style: italic;
+  font-weight: normal;
+}
+
+.reveal li {
+  margin-top: 0.8em;
+  margin-left: inherit;
+}
+
+.reveal code {
+  font-family: var(--code-font-family);
+  color: var(--zenika-red);
+}
+
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
+  display: block;
+}
+
+.reveal blockquote {
+  background: rgba(230, 230, 230, 1);
+  padding: 10px 20px;
+}
+
+/*********************************************
+ * CODE
+ *********************************************/
+
+.reveal pre {
+  margin: var(--content-block-vertical-margin) 0;
+  box-shadow: none;
+  border: 1px solid #d9d9d9;
+  border-left: 1px solid var(--zenika-red);
+  padding: 10px 15px;
+  width: 100%;
+}
+
+.reveal h2 + pre,
+.reveal h3 + pre {
+  /* Whole-slide code block */
+  border: none;
+  padding-left: 0;
+}
+
+.reveal pre > code,
+.reveal .code {
+  color: black;
+  max-height: none;
+  font-family: var(--code-font-family);
+  font-size: 22px;
+  line-height: normal;
+  display: block;
+  white-space: pre-wrap;
+}
+
+.slides section > section:not([class^="page-"]) {
+  background-image: url("../assets/zenika-gradient-bar.png"),
+    var(--zenika-logo-monogram);
+  --logo-offset-from-border: 50px;
+  background-position: top,
+    top var(--logo-offset-from-border) right
+      calc(
+        var(--logo-offset-from-border) - 18px
+          /* 18px is the height of the top gradient bar */
+      );
+  background-repeat: no-repeat, no-repeat;
+  background-size: auto, 75px 75px;
+}
+
+.webinar {
+    margin: auto;
+    display: block;
+    width: 70%;
+}
+
+.programming {
+    margin: auto;
+    display: block;
+    width: 50%;
+}
+
+.header-tf {
+		position: absolute;
+		bottom: 1em;
+		right: 1em;
+		font-size: 0.5em;
+}
+
+.hide {
+		display: none;
+		visibility: hidden;
+}
+
+.show {
+		display: block;
+		visibility: visible;
+}
+
+.questions {
+    margin: auto;
+    display: block;
+    width: 50%;
+}
+
+.reveal .slides table th, .reveal .slides table td {
+    padding: 10px 10px;
+}
+
+/*********************************************
+ * SPECIALS PAGES
+ *********************************************/
+
+.reveal section.page-title h1 {
+  height: 90%;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  text-align: center;
+  float: none;
+}
+
+.reveal section.page-title ul {
+  margin-top: 620px;
+}
+
+.reveal div.page-title h1 {
+    height: 90%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    text-align: center;
+    float: none;
+}
+
+.reveal div.page-title h2 {
+    font-size: 15pt;
+    color: var(--grey);
+    height: 60%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    text-align: center;
+    float: none;
+}
+
+
+.reveal div.page-title ul {
+    margin-top: 620px;
+}
+
+
+.reveal section.toc ul {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  max-height: 70%;
+}
+
+.reveal section.page-questions {
+  background: white center center no-repeat url("../assets/Questions-pana.svg");
+  background-size: 55%;
+}
+
+.reveal section [class^="page-tp"]:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  height: 80%;
+}
+.reveal section [class^="page-tp"] {
+  background: white top center no-repeat url("../assets/Programming-pana.svg");
+  background-size: 48%;
+}
+.reveal section [class^="page-tp"]:after {
+  display: block;
+  color: var(--zenika-red);
+  font-size: 50px;
+  font-weight: bold;
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  text-align: center;
+}
+
+.reveal section.page-tp::after {
+  content: attr(data-label);
+}
+
+.reveal section.page-tp1:after {
+  content: "Lab 1";
+}
+.reveal section.page-tp2:after {
+  content: "Lab 2";
+}
+.reveal section.page-tp3:after {
+  content: "Lab 3";
+}
+.reveal section.page-tp4:after {
+  content: "Lab 4";
+}
+.reveal section.page-tp5:after {
+  content: "Lab 5";
+}
+.reveal section.page-tp6:after {
+  content: "Lab 6";
+}
+.reveal section.page-tp7:after {
+  content: "Lab 7";
+}
+.reveal section.page-tp8:after {
+  content: "Lab 8";
+}
+.reveal section.page-tp9:after {
+  content: "Lab 9";
+}
+.reveal section.page-tp10:after {
+  content: "Lab 10";
+}
+.reveal section.page-tp11:after {
+  content: "Lab 11";
+}
+.reveal section.page-tp12:after {
+  content: "Lab 12";
+}
+.reveal section.page-tp13:after {
+  content: "Lab 13";
+}
+.reveal section.page-tp14:after {
+  content: "Lab 14";
+}
+.reveal section.page-tp15:after {
+  content: "Lab 15";
+}
+.reveal section.page-tp16:after {
+  content: "Lab 16";
+}
+.reveal section.page-tp17:after {
+  content: "Lab 17";
+}
+.reveal section.page-tp18:after {
+  content: "Lab 18";
+}
+.reveal section.page-tp19:after {
+  content: "Lab 19";
+}
+.reveal section.page-tp20:after {
+  content: "Lab 20";
+}
+.reveal section.page-tp21:after {
+  content: "Lab 21";
+}
+.reveal section.page-tp22:after {
+  content: "Lab 22";
+}
+.reveal section.page-tp23:after {
+  content: "Lab 23";
+}
+.reveal section.page-tp24:after {
+  content: "Lab 24";
+}
+.reveal section.page-tp25:after {
+  content: "Lab 25";
+}
+.reveal section.page-tp26:after {
+  content: "Lab 26";
+}
+.reveal section.page-tp27:after {
+  content: "Lab 27";
+}
+.reveal section.page-tp28:after {
+  content: "Lab 28";
+}
+.reveal section.page-tp29:after {
+  content: "Lab 29";
+}
+.reveal section.page-tp30:after {
+  content: "Lab 30";
+}
+
+.reveal section.page-demo {
+  background: transparent top center no-repeat url("../assets/Webinar-pana.svg");
+  background-size: 70%;
+}
+.reveal section.page-demo:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  height: 80%;
+}
+.reveal section.page-demo:after {
+  display: block;
+  color: var(--zenika-red);
+  font-size: 50px;
+  font-weight: bold;
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  text-align: center;
+}
+body:lang(fr) .reveal section.page-demo:after {
+  content: "Démo";
+}
+body:lang(en) .reveal section.page-demo:after {
+  content: "Demo";
+}
+.reveal section.page-demo[data-label]:after {
+  content: attr(data-label) !important;
+}
+
+/*********************************************
+ * LINKS
+ *********************************************/
+
+.reveal a:not(.image) {
+  color: var(--zenika-red);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.reveal a[href^="http://"], .reveal a[href^="https://"]
+{
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.reveal a:not(.image):hover {
+  color: var(--zenika-red);
+  text-shadow: none;
+  border: none;
+}
+
+.reveal .roll span:after {
+  color: white;
+  background: var(--zenika-red);
+}
+
+.reveal .slides .toc a {
+  color: inherit;
+}
+
+/*********************************************
+ * IMAGES
+ *********************************************/
+
+.reveal section img {
+  display: block;
+  margin: 30px auto;
+}
+
+.reveal section img.with-border {
+  border: 1px solid black;
+}
+
+.reveal section img #questions {
+  margin-top: 100px;
+}
+
+.reveal figcaption {
+  text-align: center;
+}
+
+/*********************************************
+ * NAVIGATION CONTROLS
+ *********************************************/
+
+.reveal .controls div.navigate-left,
+.reveal .controls div.navigate-left.enabled {
+  border-right-color: var(--zenika-red);
+}
+
+.reveal .controls div.navigate-right,
+.reveal .controls div.navigate-right.enabled {
+  border-left-color: var(--zenika-red);
+}
+
+.reveal .controls div.navigate-up,
+.reveal .controls div.navigate-up.enabled {
+  border-bottom-color: var(--zenika-red);
+}
+
+.reveal .controls div.navigate-down,
+.reveal .controls div.navigate-down.enabled {
+  border-top-color: var(--zenika-red);
+}
+
+.reveal .controls div.navigate-left.enabled:hover {
+  border-right-color: var(--zenika-red);
+}
+
+.reveal .controls div.navigate-right.enabled:hover {
+  border-left-color: var(--zenika-red);
+}
+
+.reveal .controls div.navigate-up.enabled:hover {
+  border-bottom-color: var(--zenika-red);
+}
+
+.reveal .controls div.navigate-down.enabled:hover {
+  border-top-color: var(--zenika-red);
+}
+
+/*********************************************
+ * PROGRESS BAR
+ *********************************************/
+
+.reveal .progress {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.reveal .progress span {
+  background: var(--zenika-red);
+  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+}
+
+/*********************************************
+ * FOOTER (style copied from reveal.css -> .reveal .slide-number)
+ *********************************************/
+
+.reveal footer,
+.reveal .slides footer {
+  position: absolute;
+  bottom: var(--footer-vertical-margin);
+  color: var(--grey);
+  font-size: 70%;
+  /* unset styles from Reveal */
+  background-color: unset;
+  font-family: unset;
+  padding: unset;
+}
+
+.reveal .master-toc-return {
+  left: 15px;
+  bottom: var(--footer-vertical-margin);
+  font-size: 20px;
+  z-index: 1000;
+}
+
+.reveal .slides footer.copyright {
+  left: 0px;
+  width: 100%;
+  text-align: center;
+}
+
+.reveal .slides footer.slide-number {
+  left: 50px;
+  color: unset;
+}
+
+.reveal .slides section section .version {
+  right: 50px;
+  visibility: hidden;
+}
+
+.reveal .slides section section:first-child .version {
+  visibility: visible;
+}
+
+/*********************************************
+ * ALERTS (taken from bootstrap)
+ * Copyright (c) 2011-2014 Twitter, Inc
+ *********************************************/
+
+.reveal .alert {
+  padding: var(--content-block-vertical-margin);
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 24px;
+}
+
+.reveal .alert em {
+  color: inherit;
+  font-weight: bold;
+}
+
+.reveal .alert code {
+  color: inherit;
+}
+
+.reveal .alert-success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+
+.reveal .alert-info {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+
+.reveal .alert-warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+
+.reveal .alert-danger {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+
+/** incusion de font-awesome avec reveal : cf https://github.com/FortAwesome/Font-Awesome/pull/2131 */
+.reveal .fa {
+  font-family: "FontAwesome";
+  font-style: normal;
+}
+
+.reveal pre code {
+  padding: 0;
+}
+
+/** contournement bug chrome et ff qui affichent un fond noir lors du passage en fullscreen : cf https://github.com/hakimel/reveal.js/issues/1386#issuecomment-225379825 */
+html:-webkit-full-screen-ancestor {
+  background-color: inherit;
+}
+
+html {
+  background-color: #fff !important;
+}

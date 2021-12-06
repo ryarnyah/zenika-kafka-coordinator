@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="author" content="MORVAN Pierre"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="./vendor/reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="./css/slides.css" id="theme"/>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<div class="page-title"><h1 id="title">Inside Kafka Consumer-Group Mechanism</h1><h2>MORVAN Pierre</h2></div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<link href="css/slides.css" rel="stylesheet">
+<title>Inside Kafka Consumer-Group Mechanismx</title>
+
+<div class="header-tf"><div id="label-container" style="text-align:center"></div></div>
+<script src="vendor/tfjs.js"></script>
+<script src="vendor/speech-commands.js"></script>
+<script src="vendor/tf-backend-wasm.js"></script>
+<script src="js/ml.js"></script>
+
+<section>
+<section id="slide-org2f5ea46">
+<h2 id="org2f5ea46">WHO AM I?</h2>
+
+<div id="orgd50b629" class="figure">
+<p><img src="./assets/pierre_znk.png" alt="pierre_znk.png" style="border-radius: 50%; margin: auto; display: block;" />
+</p>
+</div>
+<p style="text-align: center">
+Pierre Morvan @Zenika Paris
+</p>
+<p style="text-align: center">
+@ryarnyah
+</p>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+</section>
+<section>
+<section id="slide-orge7c5cda">
+<h2 id="orge7c5cda">OVERVIEW KAFKA</h2>
+
+<div id="org9d7f1d9" class="figure">
+<p><img src="./assets/kafka.png" alt="kafka.png" />
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org81d9aaf">
+<h3 id="org81d9aaf">Topics</h3>
+
+<div id="orgb5f9deb" class="figure">
+<p><img src="./assets/topics.png" alt="topics.png" width="75%" height="75%" />
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org01875eb">
+<h3 id="org01875eb">Partition</h3>
+
+<div id="orgde500c7" class="figure">
+<p><img src="./assets/partitions.jpg" alt="partitions.jpg" width="60%" height="60%" />
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgdb7925d">
+<h3 id="orgdb7925d">Consumer-group</h3>
+
+<div id="org6098d78" class="figure">
+<p><object type="image/svg+xml" data="./assets/consumer-group.svg" class="org-svg" style="margin: auto; display: block;">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+</section>
+<section>
+<section id="slide-org11c0dcf">
+<h2 id="org11c0dcf">REBALANCE PROTOCOL</h2>
+
+<div id="orgd78eb10" class="figure">
+<p><img src="./assets/coop.png" alt="coop.png" />
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org14a62c8">
+<h3 id="org14a62c8">Overview protocole Kafka</h3>
+<ul>
+<li>Full Asynchrone</li>
+
+</ul>
+<ul>
+<li class="fragment appear">Requete / Réponse</li>
+<li class="fragment appear">Retro-compatible ascendant/descendant</li>
+<li class="fragment appear">Documenté à partir du code</li>
+<li class="fragment appear">Binaire &amp; Normalisé</li>
+<li class="fragment appear">API Java (et autre disponible)</li>
+
+</ul>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org51d3950">
+<h3 id="org51d3950">Overview protocole Kafka - API Java</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">Schema</span> <span style="color: #7590db;">SCHEMA</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Schema</span><span style="color: #4f97d7;">(</span>
+   <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Field</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"version"</span>, <span style="color: #a45bad;">Type</span>.INT16<span style="color: #bc6ec5;">)</span>,
+   <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Field</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"nom"</span>, <span style="color: #a45bad;">Type</span>.STRING<span style="color: #bc6ec5;">)</span>,
+   <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Field</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"list-nom"</span>, <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">ArrayOf</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">Type</span>.STRING<span style="color: #2d9574;">)</span>
+<span style="color: #bc6ec5;">)</span>;
+</pre>
+</div>
+<p>
+Donne une trame
+</p>
+<pre class="example">
+[2 bytes][2 bytes pour taille nom][...nom...][4 bytes pour nombre de list-nom][...list-nom...]
+</pre>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org6dfe518">
+<h3 id="org6dfe518">Overview protocole Kafka - Async</h3>
+
+<div id="org64afbfa" class="figure">
+<p><object type="image/svg+xml" data="./assets/network.svg" class="org-svg" width="100%">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org77c1b36">
+<h3 id="org77c1b36">Consumer-group protocole</h3>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">&#xa0;</th>
+<th scope="col" class="org-left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">JoinGroupRequest</td>
+<td class="org-left">Requete envoyé par les client pour soit demander un nouveau rebalance, soit rejoindre le groupe demandé.</td>
+</tr>
+
+<tr>
+<td class="org-left">JoinGroupResponse</td>
+<td class="org-left">Réponse contenant la liste des membres, l'identifiant du membre courant du groupe ainsi que l'identifiant du leader groupe.</td>
+</tr>
+
+<tr>
+<td class="org-left">SyncGroupRequest</td>
+<td class="org-left">Requete demandant au broker de récupérer les assignations que le leader à faite. Dans le cas du leader du groupe, celui-ci envoit les assignations.</td>
+</tr>
+
+<tr>
+<td class="org-left">SyncGroupResponse</td>
+<td class="org-left">Récupération des assignations faites par le leader du groupe.</td>
+</tr>
+
+<tr>
+<td class="org-left">LeaveGroupRequest</td>
+<td class="org-left">Requete envoyé par le client lorsqu'il quitte le groupe. Permet au broker de réagir instantanément et de provoquer un rebalance dés le prochain poll.</td>
+</tr>
+
+<tr>
+<td class="org-left">LeaveGroupResponse</td>
+<td class="org-left">Réponse associée.</td>
+</tr>
+</tbody>
+</table>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgcd00c4f">
+<h3 id="orgcd00c4f">JoinGroup</h3>
+<ul>
+<li><p>
+JoinGroupRequest
+</p>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #9f8766;">/** identifiant du groupe. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">groupId</span>;
+<span style="color: #9f8766;">/** identifiant du membre si connu. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>;
+<span style="color: #9f8766;">/** Type du protocole. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocolType</span>;
+</pre>
+</div></li>
+<li><p>
+JoinGroupResponse
+</p>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #9f8766;">/** Identifiant de la g&#233;n&#233;ration du groupe (incr&#233;ment&#233; &#224; chaque rebalance) */</span>
+<span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">generationId</span>;
+<span style="color: #9f8766;">/** Type du protocole. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocolType</span>;
+<span style="color: #9f8766;">/** Nom du protocole. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocolName</span>;
+<span style="color: #9f8766;">/** Identifiant du leader. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">leader</span>;
+<span style="color: #9f8766;">/** Identifiant du membre. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>;
+<span style="color: #9f8766;">/** Metadata des membres du cluster. */</span>
+<span style="color: #ce537a; font-weight: bold;">List</span><span style="color: #4f97d7;">&lt;</span><span style="color: #ce537a; font-weight: bold;">JoinGroupResponseMember</span><span style="color: #4f97d7;">&gt;</span> <span style="color: #7590db;">members</span>;
+</pre>
+</div></li>
+
+</ul>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org75dd612">
+<h3 id="org75dd612">SyncGroup</h3>
+<ul>
+<li><p>
+SyncGroupRequest
+</p>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #9f8766;">/** Identifiant du groupe. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">groupId</span>;
+<span style="color: #9f8766;">/** Identifiant de la g&#233;n&#233;ration. */</span>
+<span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">generationId</span>;
+<span style="color: #9f8766;">/** Identifiant du membre. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>;
+<span style="color: #9f8766;">/** Type du protocole. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocolType</span>;
+<span style="color: #9f8766;">/** Nom du protocole. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocolName</span>;
+<span style="color: #9f8766;">/** Assignation au format memberId/assignment (uniquement le leader). */</span>
+<span style="color: #ce537a; font-weight: bold;">List</span><span style="color: #4f97d7;">&lt;</span><span style="color: #ce537a; font-weight: bold;">SyncGroupRequestAssignment</span><span style="color: #4f97d7;">&gt;</span> <span style="color: #7590db;">assignments</span>;
+</pre>
+</div></li>
+<li><p>
+SyncGroupResponse
+</p>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #9f8766;">/** Type du protocole. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocolType</span>;
+<span style="color: #9f8766;">/** Nom du protocole. */</span>
+<span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocolName</span>;
+<span style="color: #9f8766;">/** Assignment envoy&#233; par le leader. */</span>
+<span style="color: #ce537a; font-weight: bold;">byte</span><span style="color: #4f97d7;">[]</span> <span style="color: #7590db;">assignment</span>;
+</pre>
+</div></li>
+
+</ul>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org3c180a5">
+<h3 id="org3c180a5">EAGER Flow</h3>
+
+<div id="org719cb6a" class="figure">
+<p><object type="image/svg+xml" data="./assets/rebalance-eager.svg" class="org-svg" width="100%">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org6f809d4">
+<h3 id="org6f809d4">EAGER flow</h3>
+
+<div id="orgf249de4" class="figure">
+<p><object type="image/svg+xml" data="./assets/eager.svg" class="org-svg" style="width: 100%">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgb095f89">
+<h3 id="orgb095f89">Cooperative Flow</h3>
+
+<div id="orgbc44f89" class="figure">
+<p><object type="image/svg+xml" data="./assets/rebalance-cooperative.svg" class="org-svg" width="100%">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org849e2f6">
+<h3 id="org849e2f6">Cooperative Flow - Perte d'un membre</h3>
+
+<div id="orgab15c8f" class="figure">
+<p><object type="image/svg+xml" data="./assets/coop.svg" class="org-svg" style="width: 100%">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orge853f46">
+<h3 id="orge853f46">Cooperative Flow - Réintégration</h3>
+
+<div id="org6faa156" class="figure">
+<p><object type="image/svg+xml" data="./assets/coop-reint.svg" class="org-svg" style="width: 100%">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+</section>
+<section>
+<section id="slide-orgf237a53">
+<h2 id="orgf237a53">CONSTRUISONS NOTRE COORDINATEUR</h2>
+<p>
+Mais pourquoi? Pour quel use-cases?
+</p>
+<ul>
+<li class="fragment appear">Instance d'un service responsable d'un lancement d'un batch</li>
+<li class="fragment appear">Distribution d'une serie de taches à une liste d'instances de taille variable (ex: auto-scalling)</li>
+<li class="fragment appear">Partitionnement de traitements associées à une donnée partitionnable (membre modulo nombre de membres)</li>
+<li class="fragment appear">&#x2026;</li>
+
+</ul>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org0986259">
+<h3 id="org0986259">Let's Go</h3>
+
+<div id="orge917611" class="figure">
+<p><object type="image/svg+xml" data="./assets/Webinar-pana.svg" class="webinar">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org9f67e84">
+<h3 id="org9f67e84">Protocol - Assignment</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"> <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #4f97d7;">{</span>
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">leaderId</span>;
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">generationId</span> = -<span style="color: #a45bad;">1</span>;
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #ce537a; font-weight: bold;">byte</span><span style="color: #bc6ec5;">[]</span> <span style="color: #7590db;">assignedTasks</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">byte</span><span style="color: #bc6ec5;">[</span><span style="color: #a45bad;">0</span><span style="color: #bc6ec5;">]</span>;
+     <span style="color: #9f8766;">/** Header */</span>
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">short</span> <span style="color: #7590db;">PROTOCOL_V0</span> = <span style="color: #a45bad;">0</span>;
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">VERSION_KEY_NAME</span> = <span style="color: #2d9574;">"version"</span>;
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">Schema</span> <span style="color: #7590db;">TASK_PROTOCOL_HEADER_SCHEMA</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Schema</span><span style="color: #bc6ec5;">(</span>
+        <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Field</span><span style="color: #2d9574;">(</span>VERSION_KEY_NAME, <span style="color: #a45bad;">Type</span>.INT16, <span style="color: #2d9574;">"Schema version"</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>;
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">Struct</span> <span style="color: #7590db;">PROTOCOL_HEADER_V0</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Struct</span><span style="color: #bc6ec5;">(</span>TASK_PROTOCOL_HEADER_SCHEMA<span style="color: #bc6ec5;">)</span>
+        .set<span style="color: #bc6ec5;">(</span>VERSION_KEY_NAME, PROTOCOL_V0<span style="color: #bc6ec5;">)</span>;
+     <span style="color: #9f8766;">/** Schema */</span>
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">LEADER_ID_KEY</span> = <span style="color: #2d9574;">"leader_id"</span>;
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">ASSIGNED_TASKS_KEY</span> = <span style="color: #2d9574;">"assigned_tasks"</span>;
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">GENERATION_KEY</span> = <span style="color: #2d9574;">"generation_key"</span>;
+
+     <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">Schema</span> <span style="color: #7590db;">SCHEMA_V0</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Schema</span><span style="color: #bc6ec5;">(</span>
+        <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Field</span><span style="color: #2d9574;">(</span>GENERATION_KEY, <span style="color: #a45bad;">Type</span>.INT32, <span style="color: #2d9574;">"Generation of assignment"</span><span style="color: #2d9574;">)</span>,
+        <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Field</span><span style="color: #2d9574;">(</span>LEADER_ID_KEY, <span style="color: #a45bad;">Type</span>.STRING, <span style="color: #2d9574;">"MemberId of group leader"</span>, <span style="color: #2d9574;">""</span><span style="color: #2d9574;">)</span>,
+        <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">Field</span><span style="color: #2d9574;">(</span>ASSIGNED_TASKS_KEY, <span style="color: #a45bad;">Type</span>.BYTES, <span style="color: #2d9574;">"Current groups assigned"</span><span style="color: #2d9574;">)</span>
+     <span style="color: #bc6ec5;">)</span>;
+     <span style="color: #9f8766;">/** ... */</span>
+<span style="color: #4f97d7;">}</span>
+
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgd564697">
+<h3 id="orgd564697">Coordinator - Listener</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">interface</span> <span style="color: #ce537a; font-weight: bold;">AssignmentListener</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">default</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #bc6ec5; font-weight: bold;">onAssigned</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>, <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #7590db;">assignment</span>,
+                                          <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">leaderId</span>, <span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">generation</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> assignment;
+    <span style="color: #bc6ec5;">}</span>
+    <span style="color: #4f97d7; font-weight: bold;">default</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #bc6ec5; font-weight: bold;">onAssignmentRevoked</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>,
+                                 <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #7590db;">assignment</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> assignment;
+    <span style="color: #bc6ec5;">}</span>
+    <span style="color: #4f97d7; font-weight: bold;">default</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #bc6ec5; font-weight: bold;">onAssignmentLost</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>,
+                                 <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #7590db;">assignment</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> onAssignmentRevoked<span style="color: #2d9574;">(</span>memberId, assignment<span style="color: #2d9574;">)</span>;
+    <span style="color: #bc6ec5;">}</span>
+    <span style="color: #4f97d7; font-weight: bold;">default</span> <span style="color: #ce537a; font-weight: bold;">Map</span><span style="color: #bc6ec5;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span>, <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span><span style="color: #bc6ec5;">&gt;</span> <span style="color: #bc6ec5; font-weight: bold;">assign</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">leaderId</span>,
+                                 <span style="color: #ce537a; font-weight: bold;">Map</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span>, <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span><span style="color: #2d9574;">&gt;</span> <span style="color: #7590db;">memberConfigs</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> memberConfigs;
+    <span style="color: #bc6ec5;">}</span>
+    <span style="color: #9f8766;">/**</span>
+<span style="color: #9f8766;">     * </span><span style="color: #a45bad;">&lt;code&gt;</span><span style="color: #9f8766;">true</span><span style="color: #a45bad;">&lt;/code&gt;</span><span style="color: #9f8766;"> if rejoin is needed.</span>
+<span style="color: #9f8766;">     */</span>
+    <span style="color: #4f97d7; font-weight: bold;">default</span> <span style="color: #ce537a; font-weight: bold;">boolean</span> <span style="color: #bc6ec5; font-weight: bold;">isRejoinNeeded</span><span style="color: #bc6ec5;">()</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #a45bad;">false</span>;
+    <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org6c5f9ad">
+<h3 id="org6c5f9ad">Coordinator - JoinGroup</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">AssignmentCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">extends</span> <span style="color: #ce537a; font-weight: bold;">AbstractCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">implements</span> <span style="color: #ce537a; font-weight: bold;">Closeable</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #9f8766;">/**</span>
+<span style="color: #9f8766;">     * Type de protocole.</span>
+<span style="color: #9f8766;">     */</span>
+    <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">PROTOCOL_TYPE</span> = <span style="color: #2d9574;">"assign"</span>;
+    <span style="color: #9f8766;">/**</span>
+<span style="color: #9f8766;">     * Sub-type de protocole.</span>
+<span style="color: #9f8766;">     */</span>
+    <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #4f97d7; font-weight: bold;">final</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">SUB_PROTOCOL_TYPE_V0</span> = <span style="color: #2d9574;">"assign_v0"</span>;
+
+    <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #7590db;">assignmentSnapshot</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span><span style="color: #bc6ec5;">()</span>;
+
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">protected</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #bc6ec5; font-weight: bold;">protocolType</span><span style="color: #bc6ec5;">()</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> PROTOCOL_TYPE;
+    <span style="color: #bc6ec5;">}</span>
+
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">protected</span> <span style="color: #a45bad;">JoinGroupRequestData</span>.<span style="color: #ce537a; font-weight: bold;">JoinGroupRequestProtocolCollection</span> <span style="color: #bc6ec5; font-weight: bold;">metadata</span><span style="color: #bc6ec5;">()</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #a45bad;">JoinGroupRequestData</span>.<span style="color: #ce537a; font-weight: bold;">JoinGroupRequestProtocolCollection</span><span style="color: #2d9574;">(</span>
+                Collections.singletonList<span style="color: #67b11d;">(</span><span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #a45bad;">JoinGroupRequestData</span>.<span style="color: #ce537a; font-weight: bold;">JoinGroupRequestProtocol</span><span style="color: #b1951d;">()</span>
+                   .setName<span style="color: #b1951d;">(</span>SUB_PROTOCOL_TYPE_V0<span style="color: #b1951d;">)</span>
+                   .setMetadata<span style="color: #b1951d;">(</span>assignmentSnapshot.serialize<span style="color: #4f97d7;">()</span>.array<span style="color: #4f97d7;">()</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>.iterator<span style="color: #67b11d;">()</span><span style="color: #2d9574;">)</span>;
+    <span style="color: #bc6ec5;">}</span>
+
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgbda6e46">
+<h3 id="orgbda6e46">Coordinator - JoinGroup</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">AssignmentCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">extends</span> <span style="color: #ce537a; font-weight: bold;">AbstractCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">implements</span> <span style="color: #ce537a; font-weight: bold;">Closeable</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #9f8766;">/** ... */</span>
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">protected</span> <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">onJoinPrepare</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">generation</span>, <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">try</span> <span style="color: #2d9574;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #67b11d;">(</span>generation == <span style="color: #a45bad;">Generation</span>.NO_GENERATION.generationId &amp;&amp;
+                memberId.equals<span style="color: #b1951d;">(</span><span style="color: #a45bad;">Generation</span>.NO_GENERATION.memberId<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span> <span style="color: #67b11d;">{</span>
+                LOGGER.info<span style="color: #b1951d;">(</span><span style="color: #2d9574;">"Giving away assignment as lost since generation has been reset,"</span> +
+                            <span style="color: #2d9574;">"indicating that client is no longer part of the group"</span><span style="color: #b1951d;">)</span>;
+                listener.onAssignmentLost<span style="color: #b1951d;">(</span>memberId, assignmentSnapshot<span style="color: #b1951d;">)</span>;
+                <span style="color: #9f8766;">/** Reset snapshot when assignment lost */</span>
+                assignmentSnapshot = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span><span style="color: #b1951d;">()</span>;
+            <span style="color: #67b11d;">}</span> <span style="color: #4f97d7; font-weight: bold;">else</span> <span style="color: #67b11d;">{</span>
+                LOGGER.debug<span style="color: #b1951d;">(</span><span style="color: #2d9574;">"Revoking previous assignment {}"</span>, assignmentSnapshot<span style="color: #b1951d;">)</span>;
+                listener.onAssignmentRevoked<span style="color: #b1951d;">(</span>memberId, assignmentSnapshot<span style="color: #b1951d;">)</span>;
+            <span style="color: #67b11d;">}</span>
+        <span style="color: #2d9574;">}</span> <span style="color: #4f97d7; font-weight: bold;">catch</span> <span style="color: #2d9574;">(</span>WakeupException | InterruptException e<span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">throw</span> e;
+        <span style="color: #2d9574;">}</span> <span style="color: #4f97d7; font-weight: bold;">catch</span> <span style="color: #2d9574;">(</span><span style="color: #ce537a; font-weight: bold;">Exception</span> <span style="color: #7590db;">e</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">throw</span> <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">KafkaException</span><span style="color: #67b11d;">(</span><span style="color: #2d9574;">"User rebalance callback throws an error"</span>, e<span style="color: #67b11d;">)</span>;
+        <span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">}</span>
+
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgb474a91">
+<h3 id="orgb474a91">Coordinator - SyncGroup</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #a45bad;">@Override</span>
+<span style="color: #4f97d7; font-weight: bold;">protected</span> <span style="color: #ce537a; font-weight: bold;">Map</span><span style="color: #4f97d7;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span>, <span style="color: #ce537a; font-weight: bold;">ByteBuffer</span><span style="color: #4f97d7;">&gt;</span> <span style="color: #bc6ec5; font-weight: bold;">performAssignment</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">leaderId</span>,
+                       <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocol</span>,
+                       <span style="color: #ce537a; font-weight: bold;">List</span><span style="color: #bc6ec5;">&lt;</span><span style="color: #a45bad;">JoinGroupResponseData</span>.<span style="color: #ce537a; font-weight: bold;">JoinGroupResponseMember</span><span style="color: #bc6ec5;">&gt;</span> <span style="color: #7590db;">allMemberMetadata</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+    LOGGER.debug<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"Performing assignment"</span><span style="color: #bc6ec5;">)</span>;
+
+    <span style="color: #ce537a; font-weight: bold;">Generation</span> <span style="color: #7590db;">generation</span> = generation<span style="color: #bc6ec5;">()</span>;
+    <span style="color: #9f8766;">/** ... */</span>
+    LOGGER.debug<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"Member information: {} Assignments: {}"</span>, memberConfigs, assignments<span style="color: #bc6ec5;">)</span>;
+    <span style="color: #4f97d7; font-weight: bold;">return</span> assignments.entrySet<span style="color: #bc6ec5;">()</span>
+        .stream<span style="color: #bc6ec5;">()</span>
+        .collect<span style="color: #bc6ec5;">(</span>Collectors.toMap<span style="color: #2d9574;">(</span>
+                                  <span style="color: #a45bad;">Map</span>.Entry::getKey,
+                                  e -&gt; AssignmentProtocol.serializeAssignment<span style="color: #67b11d;">(</span>e.getValue<span style="color: #b1951d;">()</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgbaff993">
+<h3 id="orgbaff993">Coordinator - SyncGroup</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">AssignmentCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">extends</span> <span style="color: #ce537a; font-weight: bold;">AbstractCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">implements</span> <span style="color: #ce537a; font-weight: bold;">Closeable</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #9f8766;">/** ... */</span>
+    <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">previousAssignmentGenerationId</span> = <span style="color: #a45bad;">Generation</span>.NO_GENERATION.generationId;
+    <span style="color: #9f8766;">/** ... */</span>
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">protected</span> <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">onJoinComplete</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">generation</span>, <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>, <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">protocol</span>,
+                                  <span style="color: #ce537a; font-weight: bold;">ByteBuffer</span> <span style="color: #7590db;">memberAssignment</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">try</span> <span style="color: #2d9574;">{</span>
+            assignmentSnapshot = AssignmentProtocol.deserializeAssignment<span style="color: #67b11d;">(</span>memberAssignment<span style="color: #67b11d;">)</span>;
+            <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #67b11d;">(</span>generation != <span style="color: #a45bad;">Generation</span>.NO_GENERATION.generationId &amp;&amp;
+                    assignmentSnapshot.getGenerationId<span style="color: #b1951d;">()</span> != <span style="color: #a45bad;">Generation</span>.NO_GENERATION.generationId &amp;&amp;
+                    generation != assignmentSnapshot.getGenerationId<span style="color: #b1951d;">()</span><span style="color: #67b11d;">)</span> <span style="color: #67b11d;">{</span>
+                LOGGER.warn<span style="color: #b1951d;">(</span><span style="color: #2d9574;">"assignment generation-id {} mismatch current generation-id {}"</span>,
+                        assignmentSnapshot.getGenerationId<span style="color: #4f97d7;">()</span>, generation<span style="color: #b1951d;">)</span>;
+                requestRejoin<span style="color: #b1951d;">(</span><span style="color: #2d9574;">"assignment generation-id mismatch current generation-id"</span><span style="color: #b1951d;">)</span>;
+            <span style="color: #67b11d;">}</span>
+
+            listener.onAssigned<span style="color: #67b11d;">(</span>memberId, assignmentSnapshot,
+                                assignmentSnapshot.getLeaderId<span style="color: #b1951d;">()</span>, generation<span style="color: #67b11d;">)</span>;
+        <span style="color: #2d9574;">}</span> <span style="color: #4f97d7; font-weight: bold;">catch</span> <span style="color: #2d9574;">(</span>WakeupException | InterruptException e<span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">throw</span> e;
+        <span style="color: #2d9574;">}</span> <span style="color: #4f97d7; font-weight: bold;">catch</span> <span style="color: #2d9574;">(</span><span style="color: #ce537a; font-weight: bold;">Exception</span> <span style="color: #7590db;">e</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">throw</span> <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">KafkaException</span><span style="color: #67b11d;">(</span><span style="color: #2d9574;">"User rebalance callback throws an error"</span>, e<span style="color: #67b11d;">)</span>;
+        <span style="color: #2d9574;">}</span> <span style="color: #4f97d7; font-weight: bold;">finally</span> <span style="color: #2d9574;">{</span>
+            previousAssignmentGenerationId = generation;
+        <span style="color: #2d9574;">}</span>
+    <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orgfbcc034">
+<h3 id="orgfbcc034">Coordinator - Poll</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">AssignmentCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">extends</span> <span style="color: #ce537a; font-weight: bold;">AbstractCoordinator</span> <span style="color: #4f97d7; font-weight: bold;">implements</span> <span style="color: #ce537a; font-weight: bold;">Closeable</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #9f8766;">/** .. */</span>
+    <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">poll</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">Timer</span> <span style="color: #7590db;">timer</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #2d9574;">(</span>coordinatorUnknown<span style="color: #67b11d;">()</span> &amp;&amp; <span style="color: #a45bad;">!</span>ensureCoordinatorReady<span style="color: #67b11d;">(</span>timer<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">throw</span> <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">TimeoutException</span><span style="color: #67b11d;">(</span><span style="color: #2d9574;">"timeout on waiting for coordinator"</span><span style="color: #67b11d;">)</span>;
+        <span style="color: #2d9574;">}</span>
+        <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #2d9574;">(</span>rejoinNeededOrPending<span style="color: #67b11d;">()</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+            ensureActiveGroup<span style="color: #67b11d;">()</span>;
+        <span style="color: #2d9574;">}</span>
+
+        pollHeartbeat<span style="color: #2d9574;">(</span>timer.currentTimeMs<span style="color: #67b11d;">()</span><span style="color: #2d9574;">)</span>;
+        <span style="color: #4f97d7; font-weight: bold;">do</span> <span style="color: #2d9574;">{</span>
+            client.poll<span style="color: #67b11d;">(</span>timer<span style="color: #67b11d;">)</span>;
+        <span style="color: #2d9574;">}</span> <span style="color: #4f97d7; font-weight: bold;">while</span> <span style="color: #2d9574;">(</span>assignmentSnapshot.getLeaderId<span style="color: #67b11d;">()</span> == <span style="color: #a45bad;">null</span> &amp;&amp; timer.notExpired<span style="color: #67b11d;">()</span><span style="color: #2d9574;">)</span>;
+
+        <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #2d9574;">(</span>timer.isExpired<span style="color: #67b11d;">()</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+            <span style="color: #4f97d7; font-weight: bold;">throw</span> <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">TimeoutException</span><span style="color: #67b11d;">(</span><span style="color: #2d9574;">"timeout on waiting for assignment"</span><span style="color: #67b11d;">)</span>;
+        <span style="color: #2d9574;">}</span>
+
+        timer.update<span style="color: #2d9574;">()</span>;
+    <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-orge71a110">
+<h3 id="orge71a110">Exemple de Listener - Leader</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">LeaderListener</span> <span style="color: #4f97d7; font-weight: bold;">implements</span> <span style="color: #ce537a; font-weight: bold;">AssignmentListener</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #ce537a; font-weight: bold;">Boolean</span> <span style="color: #7590db;">isLeader</span> = <span style="color: #a45bad;">null</span>;
+
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #bc6ec5; font-weight: bold;">onAssigned</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>,
+                <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #7590db;">assignment</span>, <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">leaderId</span>, <span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">generation</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        isLeader = memberId.equals<span style="color: #2d9574;">(</span>leaderId<span style="color: #2d9574;">)</span>;
+        <span style="color: #4f97d7; font-weight: bold;">return</span> AssignmentListener.<span style="color: #4f97d7; font-weight: bold;">super</span>.onAssigned<span style="color: #2d9574;">(</span>memberId, assignment, leaderId, generation<span style="color: #2d9574;">)</span>;
+    <span style="color: #bc6ec5;">}</span>
+
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #bc6ec5; font-weight: bold;">onAssignmentLost</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">memberId</span>, <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span> <span style="color: #7590db;">assignment</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+        isLeader = <span style="color: #a45bad;">null</span>;
+        <span style="color: #4f97d7; font-weight: bold;">return</span> AssignmentListener.<span style="color: #4f97d7; font-weight: bold;">super</span>.onAssignmentLost<span style="color: #2d9574;">(</span>memberId, assignment<span style="color: #2d9574;">)</span>;
+    <span style="color: #bc6ec5;">}</span>
+
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #ce537a; font-weight: bold;">boolean</span> <span style="color: #bc6ec5; font-weight: bold;">isRejoinNeeded</span><span style="color: #bc6ec5;">()</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> isLeader == <span style="color: #a45bad;">null</span>;
+    <span style="color: #bc6ec5;">}</span>
+
+    <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #ce537a; font-weight: bold;">boolean</span> <span style="color: #bc6ec5; font-weight: bold;">isLeader</span><span style="color: #bc6ec5;">()</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> isLeader != <span style="color: #a45bad;">null</span> &amp;&amp; isLeader;
+    <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org99af843">
+<h3 id="org99af843">Exemple de Listener - Round-Robin Distribute</h3>
+<div class="org-src-container">
+
+<pre class="src src-java"><span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">ListStringListener</span> <span style="color: #4f97d7; font-weight: bold;">implements</span> <span style="color: #ce537a; font-weight: bold;">AssignmentListener</span> <span style="color: #4f97d7;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">private</span> <span style="color: #ce537a; font-weight: bold;">Set</span><span style="color: #bc6ec5;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span><span style="color: #bc6ec5;">&gt;</span> <span style="color: #7590db;">valueAssigned</span> = <span style="color: #a45bad;">null</span>;
+    <span style="color: #9f8766;">/** ... */</span>
+    <span style="color: #a45bad;">@Override</span>
+    <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #ce537a; font-weight: bold;">Map</span><span style="color: #bc6ec5;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span>, <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span><span style="color: #bc6ec5;">&gt;</span> <span style="color: #bc6ec5; font-weight: bold;">assign</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">leaderId</span>,
+                                           <span style="color: #ce537a; font-weight: bold;">Map</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span>, <span style="color: #ce537a; font-weight: bold;">AssignmentProtocol</span><span style="color: #2d9574;">&gt;</span> <span style="color: #7590db;">memberConfigs</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+       <span style="color: #ce537a; font-weight: bold;">Map</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span>, <span style="color: #ce537a; font-weight: bold;">Set</span><span style="color: #67b11d;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span><span style="color: #67b11d;">&gt;</span><span style="color: #2d9574;">&gt;</span> <span style="color: #7590db;">assignments</span> =
+           memberConfigs.entrySet<span style="color: #2d9574;">()</span>.stream<span style="color: #2d9574;">()</span>.collect<span style="color: #2d9574;">(</span>Collectors.toMap<span style="color: #67b11d;">(</span>
+                   <span style="color: #a45bad;">Map</span>.Entry::getKey,
+                   e -&gt; <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">HashSet</span><span style="color: #b1951d;">&lt;&gt;()</span>
+       <span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>;
+       <span style="color: #ce537a; font-weight: bold;">Set</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span><span style="color: #2d9574;">&gt;</span> <span style="color: #7590db;">toAssignValues</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">HashSet</span><span style="color: #2d9574;">&lt;&gt;(</span>initialAssign<span style="color: #2d9574;">)</span>;
+
+       <span style="color: #9f8766;">/** Round-robin assignment */</span>
+       <span style="color: #ce537a; font-weight: bold;">CircularIterator</span><span style="color: #2d9574;">&lt;</span><span style="color: #a45bad;">Map</span>.<span style="color: #ce537a; font-weight: bold;">Entry</span><span style="color: #67b11d;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span>, <span style="color: #ce537a; font-weight: bold;">Set</span><span style="color: #b1951d;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span><span style="color: #b1951d;">&gt;</span><span style="color: #67b11d;">&gt;</span><span style="color: #2d9574;">&gt;</span> <span style="color: #7590db;">circularIterator</span>
+           = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">CircularIterator</span><span style="color: #2d9574;">&lt;&gt;(</span>assignments.entrySet<span style="color: #67b11d;">()</span><span style="color: #2d9574;">)</span>;
+       <span style="color: #ce537a; font-weight: bold;">ArrayDeque</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">String</span><span style="color: #2d9574;">&gt;</span> <span style="color: #7590db;">toAssign</span> = <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">ArrayDeque</span><span style="color: #2d9574;">&lt;&gt;(</span>toAssignValues<span style="color: #2d9574;">)</span>;
+       <span style="color: #4f97d7; font-weight: bold;">while</span> <span style="color: #2d9574;">(</span><span style="color: #a45bad;">!</span>toAssign.isEmpty<span style="color: #67b11d;">()</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+           <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #7590db;">strToAssign</span> = toAssign.pop<span style="color: #67b11d;">()</span>;
+           circularIterator.next<span style="color: #67b11d;">()</span>.getValue<span style="color: #67b11d;">()</span>.add<span style="color: #67b11d;">(</span>strToAssign<span style="color: #67b11d;">)</span>;
+       <span style="color: #2d9574;">}</span>
+
+       memberConfigs.forEach<span style="color: #2d9574;">(</span><span style="color: #67b11d;">(</span>k, v<span style="color: #67b11d;">)</span> -&gt; v.setAssignedTasks<span style="color: #67b11d;">(</span>serialize<span style="color: #b1951d;">(</span>assignments.get<span style="color: #4f97d7;">(</span>k<span style="color: #4f97d7;">)</span><span style="color: #b1951d;">)</span>.array<span style="color: #b1951d;">()</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>;
+       <span style="color: #4f97d7; font-weight: bold;">return</span> memberConfigs;
+   <span style="color: #bc6ec5;">}</span>
+    <span style="color: #9f8766;">/** ... */</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+<section id="slide-org2599d69">
+<h3 id="org2599d69">Et si on faisait du cooperatif?</h3>
+
+<div id="org5cd9f3c" class="figure">
+<p><object type="image/svg+xml" data="./assets/Programming-pana.svg" class="programming">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+</section>
+<section>
+<section id="slide-orgc795ba1">
+<h2 id="orgc795ba1">CONCLUSION</h2>
+<ul>
+<li>Solution élégante pour distribuer des taches.</li>
+
+</ul>
+<ul>
+<li class="fragment appear">Réutilise l'infrastructure déjà présente.</li>
+<li class="fragment appear">Ne necessite pas une grande complexité d'inplémentation.</li>
+<li class="fragment appear">N'implique pas l'ajout d'une nouvelle brique (genre kafka-connect).</li>
+
+</ul>
+<p class="fragment (appear)">
+Avant de se lancer:
+</p>
+<ul>
+<li class="fragment appear">Est-ce pour mon contexte?</li>
+<li class="fragment appear">N'y a t'il pas plus simple dans mon cas?</li>
+<li class="fragment appear">Quid des droits sur le cluster?</li>
+
+</ul>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+</section>
+<section>
+<section id="slide-org09a38ee">
+<h2 id="org09a38ee">MERCI</h2>
+
+<div id="org70b9f2c" class="figure">
+<p><object type="image/svg+xml" data="./assets/Questions-pana.svg" class="questions">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+</section>
+<section>
+<section id="slide-org62c96f0">
+<h2 id="org62c96f0">LIENS</h2>
+<ul>
+<li>Slides <a href="https://ryarnyah.github.io/zenika-kafka-coordinator/">https://ryarnyah.github.io/zenika-kafka-coordinator/</a></li>
+<li>Code <a href="https://github.com/ryarnyah/zenika-kafka-coordinator">https://github.com/ryarnyah/zenika-kafka-coordinator</a></li>
+
+</ul>
+<div class="slide-footer"><footer class="copyright">TechnoZ@ure 2021 <a href="https://tinyurl.com/znk-tz-2021-kafka">https://tinyurl.com/znk-tz-2021-kafka</a></footer></div>
+</section>
+</section>
+</div>
+</div>
+<script src="./vendor/reveal.js/dist/reveal.js"></script>
+<script src="./vendor/reveal.js/plugin/markdown/markdown.js"></script>
+<script src="./vendor/reveal.js/plugin/notes/notes.js"></script>
+<script src="./vendor/reveal.js/plugin/search/search.js"></script>
+<script src="./vendor/reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: true,
+center: true,
+slideNumber: 'c',
+rollingLinks: true,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+width: 1420,
+height: 800,
+minScale: 0.70,
+maxScale: 3.50,
+
+transition: 'linear',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

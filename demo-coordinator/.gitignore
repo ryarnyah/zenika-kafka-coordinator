@@ -1,0 +1,10 @@
+.project
+.classpath
+.settings
+target/
+.pmd
+.checkstyle
+.idea
+*.iml
+.vscode
+DT.log
